@@ -7,7 +7,19 @@ import { useEffect, useState } from "react"
 import axiosApi from "../../config/axios"
 
 export default () => {
+
 const navigate=useNavigate()
+const [firstName,setFirstName] = useState("")
+const [lastName,setLastName] = useState("")
+const [email,setEmail] = useState("")
+const [address,setAddress] = useState("")
+const [country,setCountry] = useState("")
+const [zipCode,setZipCode] = useState("")
+const [city,setCity] = useState("")
+const [phone,setPhone] = useState("")
+
+
+
 const [products,setproducts] = useState([])
 
 useEffect(() => {
@@ -30,7 +42,15 @@ useEffect(() => {
 
 const createorder=()=>{
     let data={
-        totalPrice:total
+        totalPrice:total,
+        firstName:firstName,
+        lastName:lastName,
+        email:email,
+        address:address,
+        city:city,
+        country,country,
+        zipCode:zipCode,
+        phone:phone
     }
     axiosApi.post("http://localhost:5000/orders",data,
     {
@@ -153,28 +173,47 @@ const createorder=()=>{
       <h3 className="title">Billing address</h3>
     </div>
     <div className="form-group">
-      <input className="input" type="text" name="first-name" placeholder="First Name" />
+      <input className="input" type="text" name="first-name" placeholder="First Name"
+       value={firstName}
+       onChange={(e) => setFirstName(e.target.value)}
+        />
     </div>
     <div className="form-group">
-      <input className="input" type="text" name="last-name" placeholder="Last Name" />
+      <input className="input" type="text" name="last-name" placeholder="Last Name" 
+       value={lastName}
+       onChange={(e) => setLastName(e.target.value)}/>
     </div>
     <div className="form-group">
-      <input className="input" type="email" name="email" placeholder="Email" />
+      <input className="input" type="email" name="email" placeholder="Email"
+       value={email}
+       onChange={(e) => setEmail(e.target.value)}
+        />
     </div>
     <div className="form-group">
-      <input className="input" type="text" name="address" placeholder="Address" />
+      <input className="input" type="text" name="address" placeholder="Address"
+       value={address}
+       onChange={(e) => setAddress(e.target.value)} />
     </div>
     <div className="form-group">
-      <input className="input" type="text" name="city" placeholder="City" />
+      <input className="input" type="text" name="city" placeholder="City"
+       value={city}
+       onChange={(e) => setCity(e.target.value)}
+        />
     </div>
     <div className="form-group">
-      <input className="input" type="text" name="country" placeholder="Country" />
+      <input className="input" type="text" name="country" placeholder="Country"
+       value={country}
+       onChange={(e) => setCountry(e.target.value)} />
     </div>
     <div className="form-group">
-      <input className="input" type="text" name="zip-code" placeholder="ZIP Code" />
+      <input className="input" type="text" name="zip-code" placeholder="ZIP Code"
+       value={zipCode}
+       onChange={(e) => setZipCode(e.target.value)} />
     </div>
     <div className="form-group">
-      <input className="input" type="tel" name="tel" placeholder="Telephone" />
+      <input className="input" type="tel" name="tel" placeholder="Telephone"
+       value={phone}
+       onChange={(e) => setPhone(e.target.value)} />
     </div>
     <div className="form-group">
       <div className="input-checkbox">
