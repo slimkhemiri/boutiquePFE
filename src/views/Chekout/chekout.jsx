@@ -1,315 +1,427 @@
-import { Link, useNavigate } from "react-router-dom"
-import Newsletter from "../../components/Newsletter/newsletter"
-import Footer from "../../layouts/Footer/footer"
-import Header from "../../layouts/Header/header"
-import Navbar from "../../layouts/Navbar/navbar"
-import { useEffect, useState } from "react"
-import axiosApi from "../../config/axios"
+import { Link, useNavigate } from "react-router-dom";
+import Newsletter from "../../components/Newsletter/newsletter";
+import Footer from "../../layouts/Footer/footer";
+import Header from "../../layouts/Header/header";
+import Navbar from "../../layouts/Navbar/navbar";
+import { useEffect, useState } from "react";
+import axiosApi from "../../config/axios";
 
 export default () => {
+  const navigate = useNavigate();
+  const [orders, setOrders] = useState([]);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState("");
+  const [country, setCountry] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [city, setCity] = useState("");
+  const [phone, setPhone] = useState("");
 
-const navigate=useNavigate()
-const [orders,setOrders] = useState([])
-const [firstName,setFirstName] = useState("")
-const [lastName,setLastName] = useState("")
-const [email,setEmail] = useState("")
-const [address,setAddress] = useState("")
-const [country,setCountry] = useState("")
-const [zipCode,setZipCode] = useState("")
-const [city,setCity] = useState("")
-const [phone,setPhone] = useState("")
+  useEffect(() => {
+    axiosApi
+      .get("http://localhost:5000/orders")
+      .then((res) => {
+        console.log(res);
+        setOrders(res.data.data);
+      })
+      .catch((err) => {
+        console.log(
+          err.response,
+          "Erreur lors de la récupération des commandes"
+        );
+      });
+  }, []);
 
-useEffect(() => {
-  axiosApi
-    .get("http://localhost:5000/orders")
-    .then((res) => {
-      console.log(res)
-      setOrders(res.data.data);
-    })
-    .catch((err) => {
-      console.log(err.response, "Erreur lors de la récupération des commandes");
-    });
-}, []);
+  const [products, setproducts] = useState([]);
 
+  useEffect(() => {
+    const valeurStockee = JSON.parse(localStorage.getItem("products"));
+    setproducts(valeurStockee);
+  }, []);
+  const [total, settotal] = useState(0);
+  const [auth, setauth] = useState({});
+  useEffect(() => {
+    setauth(JSON.parse(localStorage.getItem("user")));
+  }, []);
 
-const [products,setproducts] = useState([])
-
-useEffect(() => {
-    const valeurStockee=JSON.parse(localStorage.getItem("products"))
-    setproducts(valeurStockee)
-},[])
-const [total,settotal] = useState(0)
-const [auth,setauth] = useState({})
-useEffect(() => {
-    setauth(JSON.parse(localStorage.getItem("user")))
-}, [])
-
-useEffect(() => {
-    let sum=0
-    for(let item of products){
-        sum+=parseInt(item.price)
+  useEffect(() => {
+    let sum = 0;
+    for (let item of products) {
+      sum += parseInt(item.price);
     }
-    settotal(sum)
-},[products])
+    settotal(sum);
+  }, [products]);
 
-const createorder=()=>{
-    let data={
-        totalPrice:total,
-        firstName:firstName,
-        lastName:lastName,
-        email:email,
-        address:address,
-        city:city,
-        country:country,
-        zipCode:zipCode,
-        phone:phone
-    }
-    axiosApi.post("http://localhost:5000/orders",data,
-    {
+  const createorder = () => {
+    let data = {
+      totalPrice: total,
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      address: address,
+      city: city,
+      country: country,
+      zipCode: zipCode,
+      phone: phone,
+    };
+    axiosApi
+      .post("http://localhost:5000/orders", data, {
         headers: {
-            Authorization: `Bearer ${auth?.tokens}`
-        }
-    })
-    .then(res=>{
-        console.log("order created successfully" , res.data.data);
-        for(let item of products){
-            let data={
-                order:res.data.data._id,
-                product:item._id
-            }
-            console.log(data, "data order");
-            axiosApi.post("http://localhost:5000/orderproduct", data).then(res=>{
-                console.log("order product created" , res.data.data);
-                // navigate("/store")
-            }).catch(err=>{
-                console.log(err.response, "Error create order product");
+          Authorization: `Bearer ${auth?.tokens}`,
+        },
+      })
+      .then((res) => {
+        console.log("order created successfully", res.data.data);
+        for (let item of products) {
+          let data = {
+            order: res.data.data._id,
+            product: item._id,
+          };
+          console.log(data, "data order");
+          axiosApi
+            .post("http://localhost:5000/orderproduct", data)
+            .then((res) => {
+              console.log("order product created", res.data.data);
+              // navigate("/store")
             })
+            .catch((err) => {
+              console.log(err.response, "Error create order product");
+            });
         }
-    }).catch(err=>{
-        console.log(err.response,"Error create order");
-    })
-}
- 
-    return (
-        <>
-            <Header />
-            <Navbar />
+      })
+      .catch((err) => {
+        console.log(err.response, "Error create order");
+      });
+  };
 
-            {/* SECTION */}
-            <div className="section">
-                {/* container */}
-                <div className="container">
-               
+  return (
+    <>
+      <Header />
+      <Navbar />
 
-                    {/* row */}
-                    <div className="row">
-                       
-                        {/* Order Details */}
-                        <div className="col-md-7 order-details">
-                            <div className="section-title text-center">
-                                <h3 className="title">Your Order</h3>
-                            </div>
-                            {orders?.map((order) => (
-  <div key={order._id}>
-    <h4>Order ID: {order._id}</h4>
-    <p>First Name: {order.firstName}</p>
-    <p>Last Name: {order.lastName}</p>
-  </div>
-))}
-                            <div className="order-summary">
-                                <div className="order-col">
-                                    <div><strong>PRODUCT</strong></div>
-                                    <div><strong>TOTAL</strong></div>
-                                </div>
-                             {
-                                products?.map(p=>{
-                                    return(
-                                        <>
-                                 <div className="order-products">
-                                    <div className="order-col">
-                                        <div>{p?.name}</div>
-                                        <div>{p?.price}</div>
-                                    </div>
-                                </div>
-                                        </>
-                                    )
-                                })
-                             }
-                           
-
-
-
-                               
-                                <div className="order-col">
-                                    <div><strong>TOTAL</strong></div>
-                                    <div><strong className="order-total">{total} dt</strong></div>
-                                </div>
-                            </div>
-                            <div className="payment-method">
-                                <div className="input-radio">
-                                    <input type="radio" name="payment" id="payment-1" />
-                                    <label htmlFor="payment-1">
-                                        <span />
-                                        Direct Bank Transfer
-                                    </label>
-                                    <div className="caption">
-                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                                    </div>
-                                </div>
-                                <div className="input-radio">
-                                    <input type="radio" name="payment" id="payment-2" />
-                                    <label htmlFor="payment-2">
-                                        <span />
-                                        Cheque Payment
-                                    </label>
-                                    <div className="caption">
-                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                                    </div>
-                                </div>
-                                <div className="input-radio">
-                                    <input type="radio" name="payment" id="payment-3" />
-                                    <label htmlFor="payment-3">
-                                        <span />
-                                        Paypal System
-                                    </label>
-                                    <div className="caption">
-                                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="input-checkbox">
-                                <input type="checkbox" id="terms" />
-                                <label htmlFor="terms">
-                                    <span />
-                                    I've read and accept the <a href="#">terms &amp; conditions</a>
-                                </label>
-                            </div>
-                            <button onClick={createorder} class="primary-btn"><Link to='/delivery'>PLACE ORDER </Link></button>
-                        </div>
-
-                     <div className="col-md-4">
-  {/* Billing Details */}
-  <div className="billing-details">
-    <div className="section-title">
-      <h3 className="title">Billing address</h3>
-    </div>
-    <div className="form-group">
-      <input className="input" type="text" name="first-name" placeholder="First Name"
-       value={firstName}
-       onChange={(e) => setFirstName(e.target.value)}
-        />
-    </div>
-    <div className="form-group">
-      <input className="input" type="text" name="last-name" placeholder="Last Name" 
-       value={lastName}
-       onChange={(e) => setLastName(e.target.value)}/>
-    </div>
-    <div className="form-group">
-      <input className="input" type="email" name="email" placeholder="Email"
-       value={email}
-       onChange={(e) => setEmail(e.target.value)}
-        />
-    </div>
-    <div className="form-group">
-      <input className="input" type="text" name="address" placeholder="Address"
-       value={address}
-       onChange={(e) => setAddress(e.target.value)} />
-    </div>
-    <div className="form-group">
-      <input className="input" type="text" name="city" placeholder="City"
-       value={city}
-       onChange={(e) => setCity(e.target.value)}
-        />
-    </div>
-    <div className="form-group">
-      <input className="input" type="text" name="country" placeholder="Country"
-       value={country}
-       onChange={(e) => setCountry(e.target.value)} />
-    </div>
-    <div className="form-group">
-      <input className="input" type="text" name="zip-code" placeholder="ZIP Code"
-       value={zipCode}
-       onChange={(e) => setZipCode(e.target.value)} />
-    </div>
-    <div className="form-group">
-      <input className="input" type="tel" name="tel" placeholder="Telephone"
-       value={phone}
-       onChange={(e) => setPhone(e.target.value)} />
-    </div>
-    <div className="form-group">
-      <div className="input-checkbox">
-        <input type="checkbox" id="create-account" />
-        <label htmlFor="create-account">
-          <span />
-          Create Account?
-        </label>
-        <div className="caption">
-          <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt.</p>
-          <input className="input" type="password" name="password" placeholder="Enter Your Password" />
-        </div>
-      </div>
-    </div>
-  </div>
-  {/* /Billing Details */}
-  {/* Shiping Details */}
-  <div className="shiping-details">
-    <div className="section-title">
-      <h3 className="title">Shiping address</h3>
-    </div>
-    <div className="input-checkbox">
-      <input type="checkbox" id="shiping-address" />
-      <label htmlFor="shiping-address">
-        <span />
-        Ship to a diffrent address?
-      </label>
-      <div className="caption">
-        <div className="form-group">
-          <input className="input" type="text" name="first-name" placeholder="First Name" />
-        </div>
-        <div className="form-group">
-          <input className="input" type="text" name="last-name" placeholder="Last Name" />
-        </div>
-        <div className="form-group">
-          <input className="input" type="email" name="email" placeholder="Email" />
-        </div>
-        <div className="form-group">
-          <input className="input" type="text" name="address" placeholder="Address" />
-        </div>
-        <div className="form-group">
-          <input className="input" type="text" name="city" placeholder="City" />
-        </div>
-        <div className="form-group">
-          <input className="input" type="text" name="country" placeholder="Country" />
-        </div>
-        <div className="form-group">
-          <input className="input" type="text" name="zip-code" placeholder="ZIP Code" />
-        </div>
-        <div className="form-group">
-          <input className="input" type="tel" name="tel" placeholder="Telephone" />
-        </div>
-      </div>
-    </div>
-  </div>
-  {/* /Shiping Details */}
-  {/* Order notes */}
-  <div className="order-notes">
-    <textarea className="input" placeholder="Order Notes" defaultValue={""} />
-  </div>
-  {/* /Order notes */}
-</div>
-
-
-
-                        {/* /Order Details */}
-                    </div>
-                    {/* /row */}
+      {/* SECTION */}
+      <div className="section">
+        {/* container */}
+        <div className="container">
+          {/* row */}
+          <div className="row">
+            {/* Order Details */}
+            <div className="col-md-7 order-details">
+              <div className="section-title text-center">
+                <h3 className="title">Your Order</h3>
+              </div>
+              {orders?.map((order, index) => (
+                <div key={order._id}>
+                  <h4>Order ID: {index + 1}</h4>
+                  <p>First Name: {order.firstName}</p>
+                  <p>Last Name: {order.lastName}</p>
+                  <p>
+                    Order Product:{" "}
+                    {order.orderproduct?.map((prod, i) => (
+                      <div key={i}>{prod}</div>
+                    ))}
+                  </p>
                 </div>
-                {/* /container */}
-            </div>
-            {/* /SECTION */}
+              ))}
+              <div className="order-summary">
+                <div className="order-col">
+                  <div>
+                    <strong>PRODUCT</strong>
+                  </div>
+                  <div>
+                    <strong>TOTAL</strong>
+                  </div>
+                </div>
+                {products?.map((p) => {
+                  return (
+                    <>
+                      <div className="order-products">
+                        <div className="order-col">
+                          <div>{p?.name}</div>
+                          <div>{p?.price}</div>
+                        </div>
+                      </div>
+                    </>
+                  );
+                })}
 
-            <Newsletter />
-            <Footer />
-        </>
-    )
-}
+                <div className="order-col">
+                  <div>
+                    <strong>TOTAL</strong>
+                  </div>
+                  <div>
+                    <strong className="order-total">{total} dt</strong>
+                  </div>
+                </div>
+              </div>
+              <div className="payment-method">
+                <div className="input-radio">
+                  <input type="radio" name="payment" id="payment-1" />
+                  <label htmlFor="payment-1">
+                    <span />
+                    Direct Bank Transfer
+                  </label>
+                  <div className="caption">
+                    <p>
+                      Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+                      sed do eiusmod tempor incididunt ut labore et dolore magna
+                      aliqua.
+                    </p>
+                  </div>
+                </div>
+                <div className="input-radio">
+                  <input type="radio" name="payment" id="payment-2" />
+                  <label htmlFor="payment-2">
+                    <span />
+                    Cheque Payment
+                  </label>
+                  <div className="caption">
+                    <p>
+                      Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+                      sed do eiusmod tempor incididunt ut labore et dolore magna
+                      aliqua.
+                    </p>
+                  </div>
+                </div>
+                <div className="input-radio">
+                  <input type="radio" name="payment" id="payment-3" />
+                  <label htmlFor="payment-3">
+                    <span />
+                    Paypal System
+                  </label>
+                  <div className="caption">
+                    <p>
+                      Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+                      sed do eiusmod tempor incididunt ut labore et dolore magna
+                      aliqua.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="input-checkbox">
+                <input type="checkbox" id="terms" />
+                <label htmlFor="terms">
+                  <span />
+                  I've read and accept the{" "}
+                  <a href="#">terms &amp; conditions</a>
+                </label>
+              </div>
+              <button onClick={createorder} class="primary-btn">
+                <Link to="/delivery">PLACE ORDER </Link>
+              </button>
+            </div>
+
+            <div className="col-md-4">
+              {/* Billing Details */}
+              <div className="billing-details">
+                <div className="section-title">
+                  <h3 className="title">Billing address</h3>
+                </div>
+                <div className="form-group">
+                  <input
+                    className="input"
+                    type="text"
+                    name="first-name"
+                    placeholder="First Name"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    className="input"
+                    type="text"
+                    name="last-name"
+                    placeholder="Last Name"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    className="input"
+                    type="email"
+                    name="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    className="input"
+                    type="text"
+                    name="address"
+                    placeholder="Address"
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    className="input"
+                    type="text"
+                    name="city"
+                    placeholder="City"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    className="input"
+                    type="text"
+                    name="country"
+                    placeholder="Country"
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    className="input"
+                    type="text"
+                    name="zip-code"
+                    placeholder="ZIP Code"
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <input
+                    className="input"
+                    type="tel"
+                    name="tel"
+                    placeholder="Telephone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <div className="input-checkbox">
+                    <input type="checkbox" id="create-account" />
+                    <label htmlFor="create-account">
+                      <span />
+                      Create Account?
+                    </label>
+                    <div className="caption">
+                      <p>
+                        Lorem ipsum dolor sit amet, consectetur adipisicing
+                        elit, sed do eiusmod tempor incididunt.
+                      </p>
+                      <input
+                        className="input"
+                        type="password"
+                        name="password"
+                        placeholder="Enter Your Password"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* /Billing Details */}
+              {/* Shiping Details */}
+              <div className="shiping-details">
+                <div className="section-title">
+                  <h3 className="title">Shiping address</h3>
+                </div>
+                <div className="input-checkbox">
+                  <input type="checkbox" id="shiping-address" />
+                  <label htmlFor="shiping-address">
+                    <span />
+                    Ship to a diffrent address?
+                  </label>
+                  <div className="caption">
+                    <div className="form-group">
+                      <input
+                        className="input"
+                        type="text"
+                        name="first-name"
+                        placeholder="First Name"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        className="input"
+                        type="text"
+                        name="last-name"
+                        placeholder="Last Name"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        className="input"
+                        type="email"
+                        name="email"
+                        placeholder="Email"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        className="input"
+                        type="text"
+                        name="address"
+                        placeholder="Address"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        className="input"
+                        type="text"
+                        name="city"
+                        placeholder="City"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        className="input"
+                        type="text"
+                        name="country"
+                        placeholder="Country"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        className="input"
+                        type="text"
+                        name="zip-code"
+                        placeholder="ZIP Code"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <input
+                        className="input"
+                        type="tel"
+                        name="tel"
+                        placeholder="Telephone"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* /Shiping Details */}
+              {/* Order notes */}
+              <div className="order-notes">
+                <textarea
+                  className="input"
+                  placeholder="Order Notes"
+                  defaultValue={""}
+                />
+              </div>
+              {/* /Order notes */}
+            </div>
+
+            {/* /Order Details */}
+          </div>
+          {/* /row */}
+        </div>
+        {/* /container */}
+      </div>
+      {/* /SECTION */}
+
+      <Newsletter />
+      <Footer />
+    </>
+  );
+};
