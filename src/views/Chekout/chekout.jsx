@@ -9,6 +9,7 @@ import axiosApi from "../../config/axios"
 export default () => {
 
 const navigate=useNavigate()
+const [orders,setOrders] = useState([])
 const [firstName,setFirstName] = useState("")
 const [lastName,setLastName] = useState("")
 const [email,setEmail] = useState("")
@@ -18,6 +19,17 @@ const [zipCode,setZipCode] = useState("")
 const [city,setCity] = useState("")
 const [phone,setPhone] = useState("")
 
+useEffect(() => {
+  axiosApi
+    .get("http://localhost:5000/orders")
+    .then((res) => {
+      console.log(res)
+      setOrders(res.data.data);
+    })
+    .catch((err) => {
+      console.log(err.response, "Erreur lors de la récupération des commandes");
+    });
+}, []);
 
 
 const [products,setproducts] = useState([])
@@ -48,7 +60,7 @@ const createorder=()=>{
         email:email,
         address:address,
         city:city,
-        country,country,
+        country:country,
         zipCode:zipCode,
         phone:phone
     }
@@ -87,6 +99,8 @@ const createorder=()=>{
             <div className="section">
                 {/* container */}
                 <div className="container">
+               
+
                     {/* row */}
                     <div className="row">
                        
@@ -95,6 +109,13 @@ const createorder=()=>{
                             <div className="section-title text-center">
                                 <h3 className="title">Your Order</h3>
                             </div>
+                            {orders?.map((order) => (
+  <div key={order._id}>
+    <h4>Order ID: {order._id}</h4>
+    <p>First Name: {order.firstName}</p>
+    <p>Last Name: {order.lastName}</p>
+  </div>
+))}
                             <div className="order-summary">
                                 <div className="order-col">
                                     <div><strong>PRODUCT</strong></div>
