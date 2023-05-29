@@ -156,7 +156,7 @@ const  Swal =require ('sweetalert2')
            <h3 className="title">List Of Categories </h3>
                                
                                 </div>
-          <Table dataSource={listcategory} columns={columns} />;
+          <Table dataSource={listcategory} columns={columns}   />;
           </div>
           {/* /row */}
         </div>

@@ -43,12 +43,13 @@ export default () => {
 
       if(res.status===200){
         setlistproduct(res.data.data)
+        console.log("prod:",res.data)
       }
     })
   }
   useEffect(() => {
     AllProducts()
-  
+  // console.log("prod:",listproduct)
   
   }, [])
   
@@ -70,7 +71,7 @@ const deleteProduct=(id)=>{
       key: 'images',
       render:(text, record)=>(
         <img style={{height:'50px', width:'50px'}}
-        src={'http://localhost:5000/file/products/'+record.images[0]}/>
+        src={'http://localhost:5000/file/products/'+record.images[0]} alt="#"/>
       )
     },
     {
